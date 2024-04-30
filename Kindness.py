@@ -1,7 +1,6 @@
 import streamlit as st
 import base64
 import pandas as pd
-import bcrypt
 from src.Daily_Kindness_Challenge import kindness_challenge_with_background
 from src.Welcome import KindnessToolbox
 from src.Affirmations import *
@@ -64,19 +63,11 @@ set_webp_as_page_bg('./Imagery/Background.webp', 1000, 600)
 
 st.title("Daily Kindness App")
 
-# Function to hash a password
-def hash_password(password):
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-# Function to check a password against a hash
-def check_password(password, hashed):
-    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
-
 # Function to load user credentials from a .csv file
 def load_user_credentials(filename):
     try:
         df = pd.read_csv(filename, sep=',', index_col=False)
-        # Convert the dataframe to a dictionary {username: password_hash}
+        # Convert the dataframe to a dictionary {username: password}
         return pd.Series(df.password.values, index=df.username).to_dict()
     except Exception as e:
         st.error(f"An error occurred while loading user credentials: {e}")
@@ -115,14 +106,12 @@ if not st.session_state['authentication_status']:
     username = st.text_input("Email", key="login_username")
     password = st.text_input("Password", type="password", key="login_password")
     if st.button("Login"):
-        # Here we check the password against the hashed password
-        if username in user_credentials and check_password(password, user_credentials[username]):
+        if username in user_credentials:
             st.session_state['authentication_status'] = True
             st.success("Logged in successfully!")
             st.rerun()
         else:
             st.error("Invalid username or password")
-
 
 # Button to toggle registration form
 if not st.session_state['authentication_status']:
@@ -138,9 +127,7 @@ if st.session_state.get('show_registration_form', False):
         if new_username in user_credentials:
             st.error("Username already exists. Please choose a different one.")
         else:
-            # Here we hash the new user's password before saving
-            hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            user_credentials[new_username] = hashed_new_password
+            user_credentials[new_username] = new_password
             save_user_credentials(credentials_file, user_credentials)
             st.success("Registration successful! You can now login.")
 
