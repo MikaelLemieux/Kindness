@@ -99,7 +99,7 @@ user_credentials = load_user_credentials(credentials_file)
 
 # Authentication check
 if 'authentication_status' not in st.session_state:
-    st.session_state['authentication_status'] = None
+    st.session_state['authentication_status'] = False
 
 # Login Form
 if not st.session_state['authentication_status']:
@@ -107,13 +107,18 @@ if not st.session_state['authentication_status']:
     username = st.text_input("Email", key="login_username")
     password = st.text_input("Password", type="password", key="login_password")
     if st.button("Login"):
-        # Here we check the password against the hashed password
-        if username in user_credentials and bcrypt.checkpw(password.encode('utf-8'), user_credentials[username].encode('utf-8')):
-            st.session_state['authentication_status'] = True
-            st.success("Logged in successfully!")
-            st.rerun()
+        # Check if username exists
+        if username in user_credentials:
+            # Compare hashed passwords
+            if bcrypt.checkpw(password.encode('utf-8'), user_credentials[username].encode('utf-8')):
+                st.session_state['authentication_status'] = True
+                st.success("Logged in successfully!")
+                st.rerun()
+            else:
+                st.error("Invalid password")
         else:
-            st.error("Invalid username or password")
+            st.error("Invalid username")
+
 
 # Button to toggle registration form
 if not st.session_state['authentication_status']:
