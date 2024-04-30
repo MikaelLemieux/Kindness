@@ -64,6 +64,14 @@ set_webp_as_page_bg('./Imagery/Background.webp', 1000, 600)
 
 st.title("Daily Kindness App")
 
+# Function to hash a password
+def hash_password(password):
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+# Function to check a password against a hash
+def check_password(password, hashed):
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
 # Function to load user credentials from a .csv file
 def load_user_credentials(filename):
     try:
@@ -99,7 +107,7 @@ user_credentials = load_user_credentials(credentials_file)
 
 # Authentication check
 if 'authentication_status' not in st.session_state:
-    st.session_state['authentication_status'] = False
+    st.session_state['authentication_status'] = None
 
 # Login Form
 if not st.session_state['authentication_status']:
@@ -107,20 +115,13 @@ if not st.session_state['authentication_status']:
     username = st.text_input("Email", key="login_username")
     password = st.text_input("Password", type="password", key="login_password")
     if st.button("Login"):
-        # Check if username exists
-        if username in user_credentials:
-            # Get hashed password from user_credentials
-            hashed_password = user_credentials.get(username)
-            # Ensure both passwords are of type str
-            provided_password = password.encode('utf-8').decode('utf-8')
-            if hashed_password and bcrypt.hashpw(provided_password.encode('utf-8'), hashed_password.encode('utf-8')) == hashed_password.encode('utf-8'):
-                st.session_state['authentication_status'] = True
-                st.success("Logged in successfully!")
-                st.rerun()
-            else:
-                st.error("Invalid password")
+        # Here we check the password against the hashed password
+        if username in user_credentials and check_password(password, user_credentials[username]):
+            st.session_state['authentication_status'] = True
+            st.success("Logged in successfully!")
+            st.rerun()
         else:
-            st.error("Invalid username")
+            st.error("Invalid username or password")
 
 
 # Button to toggle registration form
