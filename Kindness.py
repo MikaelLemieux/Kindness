@@ -110,7 +110,7 @@ if not st.session_state['authentication_status']:
         # Check if username exists
         if username in user_credentials:
             # Compare hashed passwords
-            if bcrypt.checkpw(password.encode('utf-8'), user_credentials[username].encode('utf-8')):
+            if bcrypt.hashpw(password.encode('utf-8'), user_credentials[username].encode('utf-8')) == user_credentials[username].encode('utf-8'):
                 st.session_state['authentication_status'] = True
                 st.success("Logged in successfully!")
                 st.rerun()
