@@ -13,8 +13,7 @@ from src.Story import main as ST
 st.set_page_config(
     page_title="Daily Kindness App",
     layout="wide",
-    initial_sidebar_state="collapsed",
-    Theme = "light"
+    initial_sidebar_state="collapsed"
 )
 
 # Custom CSS to remove top margin
