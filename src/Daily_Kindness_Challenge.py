@@ -3,21 +3,7 @@ import random
 import base64
 
 def kindness_challenge_with_background():
-    # Function to set background image
-    def set_webp_as_page_bg(webp_file, width, height):
-        bin_str = base64.b64encode(open(webp_file, 'rb').read()).decode()
-        page_bg_img = f'''
-            <style>
-                .stApp {{
-                    background-image: url("data:image/webp;base64,{bin_str}");
-                    background-size: cover;
-                }}
-            </style>
-        '''
-        st.markdown(page_bg_img, unsafe_allow_html=True)
 
-    # Set background image
-    set_webp_as_page_bg('./Imagery/Daily_Challenge.webp', 1000, 600)
 
     # Function to generate a random kindness challenge
     def generate_kindness_challenge():

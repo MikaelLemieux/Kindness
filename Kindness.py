@@ -1,19 +1,24 @@
 import streamlit as st
 import base64
 import pandas as pd
+from streamlit_option_menu import option_menu
 from src.Daily_Kindness_Challenge import kindness_challenge_with_background
 from src.Welcome import KindnessToolbox
 from src.Affirmations import *
 from src.Grattitude_Journal import * 
 from src.Daily_Quotes import *
-from src.Story import main as ST
-
+#from src.Story import main as ST
+from src.Map import *
+from src.feedback_script import *
+from src.Kindness_Log import *
+from src.Map_Embed import *
 
 # Set page config for wide layout and hide Streamlit menu and footer
 st.set_page_config(
-    page_title="Daily Kindness App",
+    page_title="The Kindness Movement",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
+    page_icon="❤️"  # Using a heart emoji as the icon
 )
 
 # Custom CSS to remove top margin
@@ -61,7 +66,12 @@ def set_webp_as_page_bg(webp_file, width, height):
 # Set background image
 set_webp_as_page_bg('./Imagery/Background.webp', 1000, 600)
 
-st.title("Daily Kindness App")
+col1, col2, col3, col4 = st.columns([4, 1, 4, 4])
+with col2:
+    st.image("./Imagery/logo.png", use_column_width=True)
+with col3:
+    st.markdown("<h2 style='text-align: center;'>The Kindness Movement</h2>", unsafe_allow_html=True)
+    st.markdown("<h5 style='text-align: center;'>Be the Reason Someone Smiles</h5>", unsafe_allow_html=True)
 
 # Function to load user credentials from a .csv file
 def load_user_credentials(filename):
@@ -100,24 +110,27 @@ user_credentials = load_user_credentials(credentials_file)
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = None
 
-# Login Form
+# Login Form in an Expander
 if not st.session_state['authentication_status']:
-    st.warning('Please enter your email and password')
-    username = st.text_input("Email", key="login_username")
-    password = st.text_input("Password", type="password", key="login_password")
-    if st.button("Login"):
-        if username in user_credentials:
-            st.session_state['authentication_status'] = True
-            st.success("Logged in successfully!")
-            st.rerun()
-        else:
-            st.error("Invalid username or password")
-
+    st.title("The Kindness Movement - Be the Reason Someone Smiles")
+    st.write("Our platform offers a range of tools designed to promote kindness in your daily life. From simple acts of gratitude to random acts of kindness, Kindness Toolbox is here to inspire and empower you to make the world a better place. Dive in and start spreading kindness today!")
+    with st.expander("Login"):
+        st.warning('Please enter your email and password')
+        username = st.text_input("Email", key="login_username")
+        password = st.text_input("Password", type="password", key="login_password")
+        if st.button("Login"):
+            if username in user_credentials and user_credentials[username] == password:
+                st.session_state['authentication_status'] = True
+                st.success("Logged in successfully!")
+                st.experimental_rerun()
+            else:
+                st.error("Invalid username or password")
+    
 # Button to toggle registration form
-if not st.session_state['authentication_status']:
-    if st.button("New User? Register Here"):
-        st.session_state['show_registration_form'] = True
 
+        if st.button("New User? Register Here"):
+            st.session_state['show_registration_form'] = True
+    kindness_news_app2()
 # Registration Form
 if st.session_state.get('show_registration_form', False):
     st.info("New user? Register here:")
@@ -131,35 +144,49 @@ if st.session_state.get('show_registration_form', False):
             save_user_credentials(credentials_file, user_credentials)
             st.success("Registration successful! You can now login.")
 
+    kindness_news_app2()
+
 if st.session_state['authentication_status']:
     # Logout button
     if st.button('Logout'):
         st.session_state['authentication_status'] = None
-        st.rerun()
+        st.experimental_rerun()
 
     # App categories and functions setup
     app_categories = {
-        "Welcome":["Welcome"],
-        "Daily Affirmations": ["Affirmation of the Day", "Gratitude Journal"],
-        "Kindness Challenges": ["Random Acts of Kindness", "Kindness Quotes"],
-        "Community": ["Share Your Kindness Story"],
+        "Welcome": "Welcome",
+        "Map": "Kindness Map",
+        "Kindness Log": "Kindness Log",
+        "Affirmations": "Affirmation of the Day",
+        "Gratitude": "Gratitude Journal",
+        "Challenges": "Random Acts of Kindness",
+        "Quotes": "Kindness Quotes",
+#        "Community": "Share Your Kindness Story",
+        "Feedback": "Feedback",
     }
 
     app_functions = {
         "Welcome": KindnessToolbox,
+        "Kindness Map": kindness_news_app,
+        "Kindness Log": display_kindness_and_news_stories,
         "Random Acts of Kindness": kindness_challenge_with_background,
         "Affirmation of the Day": affirmations_of_the_day,
         "Gratitude Journal" : gratitude_journal_app,
         "Kindness Quotes" : daily_kindness_quotes,
-        "Share Your Kindness Story" : ST
+        "Feedback": feedback_form,
+#        "Share Your Kindness Story" : ST
     }
 
-    # Tabs for app categories
-    tab_labels = list(app_categories.keys())
-    tabs = st.tabs(tab_labels)
+    # Option menu for app categories
+    selected_category = option_menu(
+        menu_title=None, 
+        options=list(app_categories.keys()),
+        icons=['house', 'bi-globe-americas', 'clipboard-heart', 'book', 'journal-text', 'heart', 'quote', 'chat'],
+        menu_icon="cast", 
+        default_index=0,
+        orientation="horizontal"
+    )
 
-    for tab_label in tab_labels:
-        with tabs[tab_labels.index(tab_label)]:
-            app_selection = st.radio(f"{tab_label}:", app_categories[tab_label])
-            if app_selection in app_functions:
-                app_functions[app_selection]()
+    app_selection = app_categories[selected_category]
+    if app_selection in app_functions:
+        app_functions[app_selection]()
